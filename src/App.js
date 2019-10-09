@@ -5,6 +5,8 @@ import AddedFeatures from './components/AddedFeatures';
 import AdditionalFeatures from './components/AdditionalFeatures';
 import Total from './components/Total';
 
+
+
 const initialState = {
   additionalPrice: 0,
   car: {
@@ -34,13 +36,16 @@ function reducer(state = initialState, action) {
           price: state.car.price + action.payload.price,
           features: [...state.car.features, action.payload]
         },
-        store: state.store.filter(item => {
-          item.id !== action.payload.id
-        })
+        store: state.store.filter(item => item.id !== action.payload.id)
       };
     case REMOVE_ITEM:
       return {
-        
+        ...state,
+        store: [...state.store, action.payload],
+        car: {...state.car,
+          features: state.car.features.filter(feature => feature.id !== action.payload.id),
+          price: state.car.price - action.payload.price,
+        }
       }
     default:
       return state;
@@ -49,19 +54,21 @@ function reducer(state = initialState, action) {
 
 const App = () => {
 
+  const [state, dispatch] = useReducer(reducer, initialState) 
+
   const removeFeature = item => {
     // dispatch an action here to remove an item
-    dispatchEvent({
+    dispatch({
       type: REMOVE_ITEM,
-      payload: { item }
+      payload: item,
     })
   };
 
   const buyItem = item => {
     // dipsatch an action here to add an item
-    dispatchEvent({
+    dispatch({
       type: BUY_ITEM,
-      payload: { item }
+      payload: item,
     })
   };
 
@@ -71,10 +78,10 @@ const App = () => {
     <div className="boxes">
       <div className="box">
         <Header car={state.car} />
-        <AddedFeatures car={state.car} />
+        <AddedFeatures removeFeature={removeFeature} car={state.car} />
       </div>
       <div className="box">
-        <AdditionalFeatures store={state.store} />
+        <AdditionalFeatures buyItem={buyItem} store={state.store} />
         <Total car={state.car} additionalPrice={state.additionalPrice} />
       </div>
     </div>
